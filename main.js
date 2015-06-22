@@ -1,5 +1,6 @@
 var request = require("request");
 var fs = require("fs");
+var GoogleCalendarHelper = require("./GoogleCalendarHelper");
 
     // Parameters
         // TODO : Prendre groupe de tutorat en parametre
@@ -39,6 +40,10 @@ request.get("http://www.gel.usherbrooke.ca/horarius/ical?cip=abdj2702", function
         console.log(error);
     }
 });
+
+setTimeout(function(){
+    GoogleCalendarHelper.doAuthAndAction(GoogleCalendarHelper.calendarList);
+}, 1500);
 
 // TODO : Separate in helper file ?
 function parseResponse(body){
