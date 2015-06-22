@@ -6,6 +6,8 @@
     "start": "node main.js"
   },
   "dependencies": {
-    "request":"*"
+    "request":"*",
+    "googleapis": "*",
+    "google-auth-library": "*"
   }
 }
