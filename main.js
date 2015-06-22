@@ -30,6 +30,8 @@ request.get("http://www.gel.usherbrooke.ca/horarius/ical?cip=abdj2702", function
         var parsedBody = parseResponse(body);       //Parse the body of the response
         
         var eventList = parseEvents(parsedBody.events);
+
+        eventList = trimEvents(eventList);
         
         writeCalendar(parsedBody.calendarInfos, eventList);
 
@@ -60,7 +62,7 @@ function parseEvents(events){
             
             keyAndValue = [eventLines[i].substring(0,splitIndex),eventLines[i].substring(splitIndex+1)];
             
-            // We don't want the END object into the parsed object
+            // We don't want the END object into the parsed object neither do we want undefined fields
             if(keyAndValue[0] != "END" && keyAndValue[0] != "" && keyAndValue[0] != undefined && keyAndValue[1] != undefined){            
                 json[keyAndValue[0]] = keyAndValue[1];
             }
@@ -72,6 +74,26 @@ function parseEvents(events){
     }
     
     return eventList;
+}
+
+function trimEvents(eventsList, tutoList, removeAllDayEvents){
+
+    // TODO : Implement Tutorat trimming
+    /*if(tutoList && tutoList.length > 0){
+
+    }*/
+
+    removeAllDayEvents = removeAllDayEvents || true;        // By default, will remove all days events
+
+    if(removeAllDayEvents){
+        for(var i=0; i< eventsList.length;i++){
+            if(eventsList[i].hasOwnProperty("DTSTART;VALUE=DATE") || eventsList[i].hasOwnProperty("DTSTART;VALUE=DATE;VALUE=DATE")){
+                delete eventsList[i];
+            }
+        }
+    }
+
+    return eventsList;
 }
 
 function writeCalendar(calendarInfos, eventList){
@@ -86,18 +108,20 @@ function writeCalendar(calendarInfos, eventList){
     fileContent += calendarInfos;               // We add the calendar header
     
     for(var i=0; i<eventList.length;i++){
-        keys = Object.keys(eventList[i]);
-        fileContent += "BEGIN:VEVENT\r\n";      // We add the delimiter for a new event
-        for(var j=0; j< keys.length;j++){
-            key = keys[j];
-            fileContent += key+":"+eventList[i][key]+"\r\n";
+        if(eventList[i] != undefined) {             // Verify that the event has not been deleted while trimming
+            keys = Object.keys(eventList[i]);
+            fileContent += "BEGIN:VEVENT\r\n";      // We add the delimiter for a new event
+            for (var j = 0; j < keys.length; j++) {
+                key = keys[j];
+                fileContent += key + ":" + eventList[i][key] + "\r\n";
+            }
+            fileContent += "END:VEVENT\r\n";        // We add the delimiter for the end of an event
         }
-        fileContent += "END:VEVENT\r\n";        // We add the delimiter for the end of an event
     }
     
     fileContent += "END:VCALENDAR\r\n";         // We add the delimiter for the end of the calendar
     
-    fs.writeFile("test.output", fileContent, function(err){     // Writing to file          // TODO : Send string as payload to HTTP request response
+    fs.writeFile("test.ical", fileContent, function(err){     // Writing to file          // TODO : Send string as payload to HTTP request response
         if(err){
             console.log(err);
         }else{
