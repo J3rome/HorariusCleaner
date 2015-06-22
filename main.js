@@ -6,6 +6,8 @@ var fs = require("fs");
         // TODO : prendre en parametre si on enleve les multi-day events
         // TODO : CIP en parametre
         
+    // TODO : Add HTTPS so user can send their client secret in the request
+        
     // TODO : Si pas de groupe de tutorat, ne pas masquer tutorat
     // TODO : Enleve tutorat inutile (Faire le check a la creation de l'objet JSON ? ou apres?)
     // TODO : enleve multi-day events
@@ -17,20 +19,27 @@ var fs = require("fs");
 
 request.get("http://www.gel.usherbrooke.ca/horarius/ical?cip=abdj2702", function(error, response, body){
 if (!error) {
-    var calendarInfos = body.substring(0,body.indexOf("BEGIN:VEVENT"))
-    var events = body.substring(body.indexOf("BEGIN:VEVENT"),body.length);
     
-    events = events.split(/\r\nBEGIN:.*\r\n/g);
+    var parsedBody = parseResponse(body);
+    //parsedBody.calendarInfos
     
-    var eventList = parseEvents(events);
+    var eventList = parseEvents(parsedBody.events);
+    writeEvents(eventList);
     
-    console.log(eventList[50]["LOCATION"]);
+    //console.log(eventList[50]["LOCATION"]);
 }else{
     console.log(error);
 }
 });
 
 // TODO : Separate in helper file ?
+
+function parseResponse(body){
+    var calendarInfos = body.substring(0,body.indexOf("BEGIN:VEVENT"))
+    var events = body.substring(body.indexOf("\r\nBEGIN:VEVENT"),body.length);
+    
+    return {"calendarInfos" : calendarInfos, "events":events.split(/\r\nBEGIN:.*\r\n/g)};
+}
 function parseEvents(events){
     var eventList = [];
     var json = {};
@@ -39,11 +48,19 @@ function parseEvents(events){
     
     for(var j=0;j<events.length;j++){
         eventLines = events[j].split("\r\n");
+        console.log("Event "+j);
         for(var i=0;i<eventLines.length;i++){
+            console.log("Event Line : "+i);
             keyAndValue = eventLines[i].split(":");
-            json[keyAndValue[0]] = keyAndValue[1];
+            if(keyAndValue[0] != "END" && keyAndValue[0] != "" && keyAndValue[0] != undefined && keyAndValue[1] != undefined){            // We don't want the end line into the parsed object
+                json[keyAndValue[0]] = keyAndValue[1];
+            }
         }
-        eventList.push(json);
+        console.log(json);
+        if(Object.keys(json).length > 0){
+            eventList.push(json);
+            console.log("PUSHED !");
+        }
         json = {};
     }
     
@@ -53,11 +70,12 @@ function parseEvents(events){
 function writeEvents(eventList){
     // TODO : Use async writing ?
     var fileContent = "";
-    fs.writeFileSync("/tmp/test", fileContent, function(err) {
-    if(err) {
-        return console.log(err);
-    }
-
-    console.log("The file was saved!");
-}); 
+    fileContent = JSON.stringify(eventList);
+    fs.writeFile("test.output", fileContent, function(err){
+        if(err){
+            console.log(err);
+        }else{
+            console.log("The file was saved!");
+        }
+    });
 }
