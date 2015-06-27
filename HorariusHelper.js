@@ -18,18 +18,24 @@ var appDateParser = XRegExp("^ (?<year>   [0-9]{4}     )    # year    \n\
 
 module.exports = HorariusHelper =  {
     getCalendar : function(cip, callback){
-        request.get("http://www.gel.usherbrooke.ca/horarius/ical?cip=abdj2702", function(error, response, body){
+        request.get("http://www.gel.usherbrooke.ca/horarius/ical?cip="+cip, function(error, response, body){
             if (!error) {
                 var parsedBody = HorariusHelper.parseResponse(body);       //Parse the body of the response
 
-                var eventList = HorariusHelper.parseEvents(parsedBody.events);
+                if(parsedBody.error == undefined) {
+                    var eventList = HorariusHelper.parseEvents(parsedBody.events);
 
-                eventList = HorariusHelper.trimEvents(eventList);
+                    eventList = HorariusHelper.trimEvents(eventList);
 
-                var calendar = HorariusHelper.reconstructCalendar(parsedBody.calendarInfos, eventList);
+                    var calendar = HorariusHelper.reconstructCalendar(parsedBody.calendarInfos, eventList);
 
-                if(callback){
-                    callback(undefined, calendar);
+                    if (callback) {
+                        callback(undefined, calendar);
+                    }
+                }else{
+                    if(callback){
+                        callback(parsedBody.error);
+                    }
                 }
 
             }else{
@@ -38,11 +44,15 @@ module.exports = HorariusHelper =  {
         });
     },
     parseResponse: function(body){
-        // TODO : Add some verification that we got the right response body
-        var calendarInfos = body.substring(0,body.indexOf("BEGIN:VEVENT"))
-        var events = body.substring(body.indexOf("\r\nBEGIN:VEVENT"),body.length);
+        if(body.indexOf("CIP invalide") == -1) {
+            // TODO : Add some verification that we got the right response body
+            var calendarInfos = body.substring(0, body.indexOf("BEGIN:VEVENT"))
+            var events = body.substring(body.indexOf("\r\nBEGIN:VEVENT"), body.length);
 
-        return {"calendarInfos" : calendarInfos, "events":events.split(/\r\nBEGIN:.*\r\n/g)};
+            return {"calendarInfos": calendarInfos, "events": events.split(/\r\nBEGIN:.*\r\n/g)};
+        }else{
+            return {error : body};
+        }
     },
     parseEvents: function(events){
         var eventList = [];

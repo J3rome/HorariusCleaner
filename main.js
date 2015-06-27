@@ -1,6 +1,7 @@
 var GoogleCalendarHelper = require("./GoogleCalendarHelper");
 var HorariusHelper = require("./HorariusHelper");
 var http = require('http');
+var url = require("url");
 const PORT=8080;
 
     // Parameters
@@ -21,17 +22,31 @@ const PORT=8080;
 //We need a function which handles requests and send response
 function handleRequest(req, res){
 
-    console.log("Received Request on url : "+req.url+" At "+new Date().toString());
-    HorariusHelper.getCalendar("abdj2702", function(error, calendar){
-        if(error){
+    var cip,
+        parsedUrl = url.parse(req.url, true);
 
-        }else{
-            res.setHeader("Content-Type","text/x-download;charset=UTF-8");
-            res.setHeader("Content-Disposition", "attachment; filename*=UTF-8''abdj2702_E15.ics");
-            res.end(calendar);
+    console.log("Received Request on url : "+parsedUrl.href+" At "+new Date().toString());
+
+    if(parsedUrl.pathname == "/calendar") {
+        if (parsedUrl && parsedUrl.query && parsedUrl.query.cip) {
+            HorariusHelper.getCalendar(parsedUrl.query.cip, function (error, calendar) {
+                if (error) {
+                    res.statusCode = 400;
+                    res.end(error);     // CIP is invalid
+                } else {
+                    res.setHeader("Content-Type", "text/x-download;charset=UTF-8");
+                    res.setHeader("Content-Disposition", "attachment; filename*=UTF-8''abdj2702_E15.ics");
+                    res.end(calendar);
+                }
+            });
+        } else {
+            res.statusCode = 400;
+            res.end("Please provide a CIP.");
         }
-
-    });
+    }else{
+        res.statusCode = 400;
+        res.end("This url is not allowed.");
+    }
 }
 
 //Create a server
