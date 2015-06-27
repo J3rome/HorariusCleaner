@@ -27,7 +27,7 @@ function handleRequest(req, res){
 
     console.log("Received Request on url : "+parsedUrl.href+" At "+new Date().toString());
 
-    if(parsedUrl.pathname == "/calendar") {
+    if(parsedUrl.pathname == "/horarius") {
         if (parsedUrl && parsedUrl.query && parsedUrl.query.cip) {
             HorariusHelper.getCalendar(parsedUrl.query.cip, function (error, calendar) {
                 if (error) {
