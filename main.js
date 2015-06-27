@@ -7,15 +7,13 @@ const PORT=8080;
     // Parameters
         // TODO : Prendre groupe de tutorat en parametre
         // TODO : prendre en parametre si on enleve les multi-day events
-        // TODO : CIP en parametre
-        
+
     // TODO : Add HTTPS so user can send their client secret in the request
-        
+    // TODO : Parse the calendars options in a json object
+    // TODO : Add a description and modify the name in the calendars options
     // TODO : Si pas de groupe de tutorat, ne pas masquer tutorat
     // TODO : Enleve tutorat inutile (Faire le check a la creation de l'objet JSON ? ou apres?)
-    // TODO : enleve multi-day events
     // TODO : Polling 3-4 fois par jour durant heures ouvrables (dison entre 5h du matin & 11h le soir) pour voir si ya du changement dans le ical (Garder une copie de la string recu pour comparaison rapide ?)
-    // TODO : Http server pour repondre a la requete (On devrais effacer les events inutile a ce moment puisque c'est la qu'on recoit les parametres
     // TODO : Handle les infos du calendrier
     // TODO : S'assurer de bien catcher les exceptions, le service ne doit pas crasher
 

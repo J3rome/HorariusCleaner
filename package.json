@@ -3,7 +3,8 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "node main.js"
+    "win": "node main.js",
+    "start": "nodejs main.js:"
   },
   "dependencies": {
     "request":"*",

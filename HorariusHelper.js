@@ -15,7 +15,7 @@ var appDateParser = XRegExp("^ (?<year>   [0-9]{4}     )    # year    \n\
                             (?<month>  [0-9]{2}     )    # month   \n\
                             (?<day>    [0-9]{2}     )    # day", "x");
 
-var exceptions = ["projet", "final", "intendants", "présentations", "congé"];       // We won't add a suffix when one of these words is in the summary
+var exceptions = ["projet", "final", "intendants", "pr\u00E9sentations", "cong\u00E9"];       // We won't add a suffix when one of these words is in the summary
 
 
 module.exports = HorariusHelper =  {
@@ -148,7 +148,9 @@ module.exports = HorariusHelper =  {
                         appDate = nextAppDate;
 
                     }
-                    if (exceptions.some(function(exception) { return eventsList[i]["SUMMARY"].indexOf(exception) != -1; })) {    // verify if the summary contain an exception
+                    if (exceptions.some(function(exception) {if(eventsList[i]["SUMMARY"].toLowerCase().indexOf(exception) != -1){return true;} })) {    // verify if the summary contain an exception
+
+                    }else{
                         eventsList[i]["SUMMARY"] += " - " + appList[appIndex].name;     // Append APP Name
                     }
                 }
@@ -161,9 +163,14 @@ module.exports = HorariusHelper =  {
         // TODO : Use async writing ?
         var keys,
             key,
+            calendarInfoInsertIndex,
             calendar = "";
 
         // TODO : Parse the calendarInfos and rewrite them
+        if(calendarInfos.indexOf("X-WR-CALDESC") != -1){
+            calendarInfoInsertIndex = calendarInfos.indexOf("X-WR-CALDESC:\r\n")+17;
+            calendarInfos = calendarInfos.slice(0,calendarInfoInsertIndex)+ "X-PUBLISHED-TTL:PT15M\r\n"+calendarInfos.slice(calendarInfoInsertIndex);
+        }
         calendar += calendarInfos;               // We add the calendar header
 
         for (var i = 0; i < eventList.length; i++) {
