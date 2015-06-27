@@ -15,6 +15,8 @@ var appDateParser = XRegExp("^ (?<year>   [0-9]{4}     )    # year    \n\
                             (?<month>  [0-9]{2}     )    # month   \n\
                             (?<day>    [0-9]{2}     )    # day", "x");
 
+var exceptions = ["projet", "final", "intendants", "présentations", "congé"];       // We won't add a suffix when one of these words is in the summary
+
 
 module.exports = HorariusHelper =  {
     getCalendar : function(cip, callback){
@@ -146,7 +148,9 @@ module.exports = HorariusHelper =  {
                         appDate = nextAppDate;
 
                     }
-                    eventsList[i]["SUMMARY"] += " - " + appList[appIndex].name;     // Append APP Name
+                    if (exceptions.some(function(exception) { return eventsList[i]["SUMMARY"].indexOf(exception) != -1; })) {    // verify if the summary contain an exception
+                        eventsList[i]["SUMMARY"] += " - " + appList[appIndex].name;     // Append APP Name
+                    }
                 }
             }
 
