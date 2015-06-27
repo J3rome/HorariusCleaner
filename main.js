@@ -2,6 +2,7 @@ var request = require("request");
 var fs = require("fs");
 var GoogleCalendarHelper = require("./GoogleCalendarHelper");
 var http = require('http');
+var XRegExp = require("xregexp").XRegExp;
 const PORT=8080;
 
     // Parameters
@@ -22,7 +23,7 @@ const PORT=8080;
 //We need a function which handles requests and send response
 function handleRequest(req, res){
 
-    console.log("Received Request on url : "+req.url);
+    console.log("Received Request on url : "+req.url+" At "+new Date().toString());
     getCalendar("abdj2702", function(error, calendar){
         if(error){
 
@@ -48,6 +49,7 @@ function getCalendar(cip,callback){
     request.get("http://www.gel.usherbrooke.ca/horarius/ical?cip=abdj2702", function(error, response, body){
         if (!error) {
             // FOR TESTING : Save the input so we can compare it later
+/*
             fs.writeFile("test.input", body, function(err){
                 if(err){
                     console.log(err);
@@ -55,6 +57,7 @@ function getCalendar(cip,callback){
                     console.log("The input was saved to test.input");
                 }
             });
+*/
 
             var parsedBody = parseResponse(body);       //Parse the body of the response
 
@@ -124,14 +127,78 @@ function trimEvents(eventsList, tutoList, removeAllDayEvents){
 
     removeAllDayEvents = removeAllDayEvents || true;        // By default, will remove all days events
 
+    var appList = [];
+
     if(removeAllDayEvents){
+        var lastAPP,currentAPP;
+
         for(var i=0; i< eventsList.length;i++){
-            if(eventsList[i].hasOwnProperty("DTSTART;VALUE=DATE") || eventsList[i].hasOwnProperty("DTSTART;VALUE=DATE;VALUE=DATE")){
-                delete eventsList[i];
+            if(eventsList[i].hasOwnProperty("DTSTART;VALUE=DATE")){
+                lastAPP = currentAPP;
+                currentAPP = eventsList[i]["SUMMARY"];
+
+                currentAPP = currentAPP.substr(0,currentAPP.indexOf(":"));
+                
+                if(currentAPP != lastAPP){
+                    appList.push({
+                        "name":currentAPP,
+                        "start":eventsList[i]["DTSTART;VALUE=DATE"]
+                    });
+                }
+
+                delete eventsList[i];       // We delete the event from the calendar
+            }else if(eventsList[i].hasOwnProperty("DTSTART;VALUE=DATE;VALUE=DATE")){
+                delete eventsList[i];       // We delete the single day event from the calendar
             }
         }
-    }
 
+        var appIndex = 0;
+        var dateParser = XRegExp("^ (?<year>   [0-9]{4}     )    # year    \n\
+                            (?<month>  [0-9]{2}     )    # month   \n\
+                            (?<day>    [0-9]{2}     ) T  # day     \n\
+                            (?<hour>   [0-9]{2}     )    # hour    \n\
+                            (?<minute> [0-9]{2}     )    # minute  \n\
+                            (?<second> [0-9]{2}     )    # second", "x");
+        var appDateParser = XRegExp("^ (?<year>   [0-9]{4}     )    # year    \n\
+                            (?<month>  [0-9]{2}     )    # month   \n\
+                            (?<day>    [0-9]{2}     )    # day", "x");
+        var curDate, appDate, nextAppDate, result;
+
+        result = XRegExp.exec(appList[appIndex].start, appDateParser);      // Parse APP Date
+        appDate = new Date (parseInt (result.year, 10),                     // Create Date Object
+            parseInt (result.month, 10) - 1,
+            parseInt (result.day, 10));
+
+        console.log(appList);
+
+        for(var i=0; i< eventsList.length;i++){
+            if(eventsList[i]) {
+
+                result = XRegExp.exec(eventsList[i]["DTSTART"], dateParser);    // Parse Current Date
+                curDate = new Date (parseInt (result.year, 10),                 // Create Date Object
+                    parseInt (result.month, 10) - 1,
+                    parseInt (result.day, 10),
+                    parseInt (result.hour, 10),
+                    parseInt (result.minute, 10),
+                    parseInt (result.second, 10));
+
+                if(nextAppDate == undefined || nextAppDate == appDate && appIndex < appList.length - 1){
+                    result = XRegExp.exec(appList[appIndex+1].start, appDateParser);    // Parse Next APP Date
+                    nextAppDate =  new Date (parseInt (result.year, 10),                // Create Date Object
+                        parseInt (result.month, 10) - 1,
+                        parseInt (result.day, 10));
+                }
+
+                if(curDate > nextAppDate && appIndex < appList.length - 1){          // If the current Date is > than the date of the next APP
+                    appIndex++;
+                    appDate = nextAppDate;
+
+                }
+                    eventsList[i]["SUMMARY"] += " - " + appList[appIndex].name;     // Append APP Name
+            }
+        }
+
+    }
     return eventsList;
 }
 
@@ -141,8 +208,6 @@ function reconstructCalendar(calendarInfos, eventList){
         key,
         calendar = "";
         
-    console.log("Writing Calendar to file.");
-    
     // TODO : Parse the calendarInfos and rewrite them
     calendar += calendarInfos;               // We add the calendar header
     

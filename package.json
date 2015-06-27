@@ -8,6 +8,7 @@
   "dependencies": {
     "request":"*",
     "googleapis": "*",
-    "google-auth-library": "*"
+    "google-auth-library": "*",
+    "xregexp": "*"
   }
 }
