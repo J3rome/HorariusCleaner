@@ -150,6 +150,8 @@ module.exports = HorariusHelper =  {
                     }
                     if (exceptions.some(function(exception) {if(eventsList[i]["SUMMARY"].toLowerCase().indexOf(exception) != -1){return true;} })) {    // verify if the summary contain an exception
 
+                    }else if(eventsList[i]["SUMMARY"].toLocaleLowerCase().indexOf("tutorat") != -1){
+                        eventsList[i]["SUMMARY"] += " - " + eventsList[i]["DESCRIPTION"] + " - " + appList[appIndex].name;     // Append the Tutorat Group and the APP Name
                     }else{
                         eventsList[i]["SUMMARY"] += " - " + appList[appIndex].name;     // Append APP Name
                     }
