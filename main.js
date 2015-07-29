@@ -29,10 +29,10 @@ function handleRequest(req, res){
                     res.statusCode = 400;
                     console.log("Error Occured At "+new Date().toString() + ": ");
                     console.log(error);
-                    res.end(error);     // CIP is invalid or response is invalid
+                    res.end(error);     // CIP is invalid or response received is invalid
                 } else {
                     res.setHeader("Content-Type", "text/x-download;charset=UTF-8");
-                    res.setHeader("Content-Disposition", "attachment; filename*=UTF-8''abdj2702_E15.ics");
+                    res.setHeader("Content-Disposition", "attachment; filename*=UTF-8''"+parsedUrl.query.cip+"_UdeS.ics");
                     res.end(calendar);
                 }
             });
