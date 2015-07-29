@@ -27,7 +27,9 @@ function handleRequest(req, res){
             HorariusHelper.getCalendar(parsedUrl.query.cip, function (error, calendar) {
                 if (error) {
                     res.statusCode = 400;
-                    res.end(error);     // CIP is invalid
+                    console.log("Error Occured At "+new Date().toString() + ": ");
+                    console.log(error);
+                    res.end(error);     // CIP is invalid or response is invalid
                 } else {
                     res.setHeader("Content-Type", "text/x-download;charset=UTF-8");
                     res.setHeader("Content-Disposition", "attachment; filename*=UTF-8''abdj2702_E15.ics");
