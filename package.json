@@ -1,15 +1,19 @@
 {
-  "name": "HorariusFowarder",
+  "name": "HorariusCleaner",
   "version": "0.0.1",
+  "description": "Simple server that pull Horarius Schedule and clean it up",
+  "author": "Jerome Abdelnour <jerome.abdelnour@usherbrooke.ca>",
   "private": true,
   "scripts": {
-    "win": "node main.js",
-    "start": "nodejs main.js:"
+    "start": "node main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/J3rome/HorariusCleaner"
   },
   "dependencies": {
     "request":"*",
-    "googleapis": "*",
-    "google-auth-library": "*",
     "xregexp": "*"
-  }
+  },
+  "license": "MIT"
 }

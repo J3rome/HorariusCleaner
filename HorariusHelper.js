@@ -2,21 +2,20 @@ var XRegExp = require("xregexp").XRegExp;
 var fs = require("fs");
 var request = require("request");
 
+// Constants
+const exceptions = ["projet", "final", "intendants", "pr\u00E9sentations", "cong\u00E9"];       // We won't add a suffix when one of these words is contained in the summary
 
 // Date Parsers
 var dateParser = XRegExp("^ (?<year>   [0-9]{4}     )    # year    \n\
                             (?<month>  [0-9]{2}     )    # month   \n\
-                            (?<day>    [0-9]{2}     ) T  # day     \n\
-                            (?<hour>   [0-9]{2}     )    # hour    \n\
-                            (?<minute> [0-9]{2}     )    # minute  \n\
-                            (?<second> [0-9]{2}     )    # second", "x");
-
-var appDateParser = XRegExp("^ (?<year>   [0-9]{4}     )    # year    \n\
-                            (?<month>  [0-9]{2}     )    # month   \n\
                             (?<day>    [0-9]{2}     )    # day", "x");
 
-var exceptions = ["projet", "final", "intendants", "pr\u00E9sentations", "cong\u00E9"];       // We won't add a suffix when one of these words is in the summary
-
+var dateParserWithHourMinuteSecond = XRegExp("^ (?<year>   [0-9]{4}     )    # year    \n\
+                                                (?<month>  [0-9]{2}     )    # month   \n\
+                                                (?<day>    [0-9]{2}     ) T  # day     \n\
+                                                (?<hour>   [0-9]{2}     )    # hour    \n\
+                                                (?<minute> [0-9]{2}     )    # minute  \n\
+                                                (?<second> [0-9]{2}     )    # second", "x");
 
 module.exports = HorariusHelper =  {
     getCalendar : function(cip, callback){
@@ -27,7 +26,9 @@ module.exports = HorariusHelper =  {
                 if(parsedBody.error == undefined) {
                     var eventList = HorariusHelper.parseEvents(parsedBody.events);
 
-                    eventList = HorariusHelper.trimEvents(eventList);
+                    // TODO : Pass a list of tutorat to remove
+                    // TODO : Pass a boolean indicating if we should remove all day events
+                    eventList = HorariusHelper.trimEvents(eventList, [], true);
 
                     var calendar = HorariusHelper.reconstructCalendar(parsedBody.calendarInfos, eventList);
 
@@ -93,7 +94,9 @@ module.exports = HorariusHelper =  {
 
          }*/
 
-        removeAllDayEvents = removeAllDayEvents || true;        // By default, will remove all days events
+        if(removeAllDayEvents == undefined){
+            removeAllDayEvents = true;              // By default, will remove all days events
+        }
 
         var appList = [];
 
@@ -123,7 +126,7 @@ module.exports = HorariusHelper =  {
             var appIndex = 0;
             var curDate, appDate, nextAppDate, result;
 
-            result = XRegExp.exec(appList[appIndex].start, appDateParser);      // Parse APP Date
+            result = XRegExp.exec(appList[appIndex].start, dateParser);      // Parse APP Date
             appDate = new Date(parseInt(result.year, 10),                     // Create Date Object
                 parseInt(result.month, 10) - 1,
                 parseInt(result.day, 10));
@@ -131,7 +134,7 @@ module.exports = HorariusHelper =  {
             for (var i = 0; i < eventsList.length; i++) {
                 if (eventsList[i]) {
 
-                    result = XRegExp.exec(eventsList[i]["DTSTART"], dateParser);    // Parse Current Date
+                    result = XRegExp.exec(eventsList[i]["DTSTART"], dateParserWithHourMinuteSecond);    // Parse Current Date
                     curDate = new Date(parseInt(result.year, 10),                 // Create Date Object
                         parseInt(result.month, 10) - 1,
                         parseInt(result.day, 10),
@@ -140,7 +143,7 @@ module.exports = HorariusHelper =  {
                         parseInt(result.second, 10));
 
                     if (nextAppDate == undefined || nextAppDate == appDate && appIndex < appList.length - 1) {
-                        result = XRegExp.exec(appList[appIndex + 1].start, appDateParser);    // Parse Next APP Date
+                        result = XRegExp.exec(appList[appIndex + 1].start, dateParser);    // Parse Next APP Date
                         nextAppDate = new Date(parseInt(result.year, 10),                // Create Date Object
                             parseInt(result.month, 10) - 1,
                             parseInt(result.day, 10));
@@ -165,7 +168,6 @@ module.exports = HorariusHelper =  {
         return eventsList;
     },
     reconstructCalendar: function (calendarInfos, eventList) {
-        // TODO : Use async writing ?
         var keys,
             key,
             calendarInfoInsertIndex,
@@ -194,8 +196,8 @@ module.exports = HorariusHelper =  {
 
         return calendar;
     },
-    writeCalendar: function(calendar) {
-        fs.writeFile("test.ical", calendar, function(err){     // Writing to file          // TODO : Send string as payload to HTTP request response
+    writeCalendarToFile: function(calendar) {
+        fs.writeFile("test.ical", calendar, function(err){     // Writing to file
             if(err){
                 console.log(err);
             }else{
