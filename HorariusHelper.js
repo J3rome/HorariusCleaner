@@ -46,7 +46,7 @@ module.exports = HorariusHelper =  {
         });
     },
     parseResponse: function(body){
-        if(body.indexOf("CIP invalide") == -1) {
+        if(body.indexOf("CIP invalide") == -1 && body.indexOf("BEGIN:VCALENDAR") == 1) {
             // TODO : Add some verification that we got the right response body
             var calendarInfos = body.substring(0, body.indexOf("BEGIN:VEVENT"))
             var events = body.substring(body.indexOf("\r\nBEGIN:VEVENT"), body.length);
