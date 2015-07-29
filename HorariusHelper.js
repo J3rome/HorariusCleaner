@@ -18,6 +18,7 @@ var dateParserWithHourMinuteSecond = XRegExp("^ (?<year>   [0-9]{4}     )    # y
                                                 (?<hour>   [0-9]{2}     )    # hour    \n\
                                                 (?<minute> [0-9]{2}     )    # minute  \n\
                                                 (?<second> [0-9]{2}     )    # second", "x");
+
 var HorariusHelper =  {
     getCalendar : function(cip, callback){
         request.get(horariusURL+"?cip="+cip, function(error, response, body){
