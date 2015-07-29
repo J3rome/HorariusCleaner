@@ -41,17 +41,20 @@ module.exports = HorariusHelper =  {
                 }
 
             }else{
-                console.log(error);
+                if(callback){
+                    callback(error);
+                }
             }
         });
     },
     parseResponse: function(body){
-        if(body.indexOf("CIP invalide") == -1 && body.indexOf("BEGIN:VCALENDAR") == 1) {
-            // TODO : Add some verification that we got the right response body
+        if(body.indexOf("BEGIN:VCALENDAR") == 0) {
             var calendarInfos = body.substring(0, body.indexOf("BEGIN:VEVENT"))
             var events = body.substring(body.indexOf("\r\nBEGIN:VEVENT"), body.length);
 
             return {"calendarInfos": calendarInfos, "events": events.split(/\r\nBEGIN:.*\r\n/g)};
+        }else if(body.indexOf("CIP invalide") != -1) {
+            return {error : "Invalid CIP."};
         }else{
             return {error : body};
         }
