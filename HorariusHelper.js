@@ -3,7 +3,8 @@ var fs = require("fs");
 var request = require("request");
 
 // Constants
-const horariusURL = "http://www.gel.usherbrooke.ca/horarius/ical";
+const horariusURL = "http://www.gel.usherbrooke.ca/horarius/ical";                              // Url to get the original calendar
+const suggestedRefreshTimeInMinute = "30";                                                      // Suggested Time (X-PUBLISHED-TTL) in minute. NOTE : This param is ignored by Google Calendar and some others
 const exceptions = ["projet", "final", "intendants", "pr\u00E9sentations", "cong\u00E9"];       // We won't add a suffix when one of these words is contained in the summary
 
 // Date Parsers
@@ -52,6 +53,7 @@ var HorariusHelper =  {
             }
         });
     },
+
     parseResponse: function(body){
         if(body.indexOf("BEGIN:VCALENDAR") == 0) {
             // The first line of the response represent a valid calendar
@@ -66,6 +68,7 @@ var HorariusHelper =  {
             return {error : body};
         }
     },
+
     parseEvents: function(events){
         var eventList = [];
         var json = {};
@@ -94,6 +97,7 @@ var HorariusHelper =  {
 
         return eventList;
     },
+
     trimEvents: function(eventsList, tutoList, removeAllDayEvents) {
         var appList = [];                           // List containing information regarding each APP
 
@@ -184,16 +188,17 @@ var HorariusHelper =  {
         }
         return eventsList;
     },
+
     reconstructCalendar: function (calendarInfos, eventList) {
+        // TODO : Parse the calendarInfos and reconstruct them
         var keys,
             key,
             calendarInfoInsertIndex,
             calendar = "";
 
-        // TODO : Parse the calendarInfos and rewrite them
         if(calendarInfos.indexOf("X-WR-CALDESC") != -1){
             calendarInfoInsertIndex = calendarInfos.indexOf("X-WR-CALDESC:\r\n")+17;
-            calendarInfos = calendarInfos.slice(0,calendarInfoInsertIndex)+ "X-PUBLISHED-TTL:PT15M\r\n"+calendarInfos.slice(calendarInfoInsertIndex);
+            calendarInfos = calendarInfos.slice(0,calendarInfoInsertIndex)+ "X-PUBLISHED-TTL:PT"+suggestedRefreshTimeInMinute+"M\r\n"+calendarInfos.slice(calendarInfoInsertIndex);
         }
         calendar += calendarInfos;               // We add the calendar header
 
@@ -213,8 +218,9 @@ var HorariusHelper =  {
 
         return calendar;
     },
-    writeCalendarToFile: function(calendar) {
-        fs.writeFile("test.ical", calendar, function(err){     // Writing to file
+
+    writeCalendarToFile: function(filename, calendar) {
+        fs.writeFile(filename, calendar, function(err){     // Writing to file
             if(err){
                 console.log(err);
             }else{
