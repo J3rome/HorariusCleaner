@@ -1,5 +1,5 @@
 # HorariusCleaner
-Cleanup of Horarius schedule &amp; Force sync
+Cleanup of Horarius schedule
 
 # Installation
 
