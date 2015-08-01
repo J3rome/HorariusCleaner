@@ -23,10 +23,9 @@ server.listen(PORT, function(){
 
 function handleRequest(req, res){
     var parsedUrl = url.parse(req.url, true);
-console.log(req);
     var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
-    console.log(ip + " requested  "+parsedUrl.href+" On " + moment().format("MMMM Do YYYY, HH:mm:ss"));
+    console.log(moment().format("MMMM Do YYYY, HH:mm:ss") + " : " + ip + " requested  "+parsedUrl.href);
 
     if(parsedUrl.pathname == "/horarius") {
         if (parsedUrl && parsedUrl.query && parsedUrl.query.cip) {
