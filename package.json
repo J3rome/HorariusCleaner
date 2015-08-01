@@ -13,7 +13,8 @@
   },
   "dependencies": {
     "request":"*",
-    "xregexp": "*"
+    "xregexp": "*",
+    "moment":"*"
   },
   "license": "MIT"
 }

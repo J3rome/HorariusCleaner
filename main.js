@@ -1,6 +1,7 @@
 var HorariusHelper = require("./HorariusHelper");
 var http = require('http');
 var url = require("url");
+var moment = require("moment");
 const PORT=8080;
 
     // Parameters
@@ -22,8 +23,9 @@ server.listen(PORT, function(){
 
 function handleRequest(req, res){
     var parsedUrl = url.parse(req.url, true);
+    var ip = req.header('x-forwarded-for') || req.connection.remoteAddress;
 
-    console.log("Received Request on url : "+parsedUrl.href+" At "+new Date().toString());
+    console.log(ip + " requested  "+parsedUrl.href+" On " + moment().format("MMMM Do YYYY, HH:mm:ss"));
 
     if(parsedUrl.pathname == "/horarius") {
         if (parsedUrl && parsedUrl.query && parsedUrl.query.cip) {
