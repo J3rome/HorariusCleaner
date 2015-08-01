@@ -23,7 +23,8 @@ server.listen(PORT, function(){
 
 function handleRequest(req, res){
     var parsedUrl = url.parse(req.url, true);
-    var ip = req.header('x-forwarded-for') || req.connection.remoteAddress;
+console.log(req);
+    var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
     console.log(ip + " requested  "+parsedUrl.href+" On " + moment().format("MMMM Do YYYY, HH:mm:ss"));
 
