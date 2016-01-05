@@ -2,7 +2,8 @@ var HorariusHelper = require("./HorariusHelper");
 var http = require('http');
 var url = require("url");
 var moment = require("moment");
-var PORT=80;
+var PORT= process.env.OPENSHIFT_NODEJS_PORT || 8080;
+var host= process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1";
 
     // Parameters
         // TODO : Prendre groupe de tutorat en parametre (Si pas de groupe de tutorat, ne pas masquer tutorat)
@@ -17,7 +18,7 @@ var PORT=80;
 var server = http.createServer(handleRequest);
 
 // Start the server on PORT
-server.listen(PORT, "127.0.0.1", function(){
+server.listen(PORT, host, function(){
     console.log("HorariusCleaner listening on Port : %s", PORT);
 });
 
