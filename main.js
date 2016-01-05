@@ -17,7 +17,7 @@ var PORT=80;
 var server = http.createServer(handleRequest);
 
 // Start the server on PORT
-server.listen(PORT, function(){
+server.listen(PORT, "127.0.0.1", function(){
     console.log("HorariusCleaner listening on Port : %s", PORT);
 });
 
